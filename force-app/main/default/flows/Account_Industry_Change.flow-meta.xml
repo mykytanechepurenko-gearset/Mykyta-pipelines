@@ -1,9 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Flow xmlns="http://soap.sforce.com/2006/04/metadata">
     <actionCalls>
+        <name>Send_Email_To_Head_Of_Sales</name>
+        <label>Send Email To Head Of Sales</label>
+        <locationX>50</locationX>
+        <locationY>647</locationY>
+        <actionName>emailSimple</actionName>
+        <actionType>emailSimple</actionType>
+        <connector>
+            <targetReference>Update_Case</targetReference>
+        </connector>
+        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
+        <inputParameters>
+            <name>emailSubject</name>
+            <value>
+                <stringValue>5+ open opps on account industry change</stringValue>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>emailBody</name>
+            <value>
+                <elementReference>EmailBody</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>recipientId</name>
+            <value>
+                <stringValue>tom@gearset.com</stringValue>
+            </value>
+        </inputParameters>
+        <nameSegment>emailSimple</nameSegment>
+    </actionCalls>
+    <actionCalls>
         <name>Send_Email_To_Owner</name>
         <label>Send Email To Owner</label>
-        <locationX>50</locationX>
+        <locationX>314</locationX>
         <locationY>647</locationY>
         <actionName>emailSimple</actionName>
         <actionType>emailSimple</actionType>
@@ -11,7 +42,7 @@
         <inputParameters>
             <name>emailSubject</name>
             <value>
-                <stringValue>Account Industry Changed</stringValue>
+                <stringValue>3+ open opps on account industry change</stringValue>
             </value>
         </inputParameters>
         <inputParameters>
@@ -33,7 +64,7 @@
     <assignments>
         <name>Count_number_of_records</name>
         <label>Count number of records</label>
-        <locationX>226</locationX>
+        <locationX>358</locationX>
         <locationY>431</locationY>
         <assignmentItems>
             <assignToReference>NumberOfOpenOpps</assignToReference>
@@ -46,21 +77,59 @@
             <targetReference>Check_Number_Of_Open_Opps</targetReference>
         </connector>
     </assignments>
+    <assignments>
+        <name>Update_opp</name>
+        <label>Update opp</label>
+        <locationX>754</locationX>
+        <locationY>755</locationY>
+        <assignmentItems>
+            <assignToReference>Set_to_needs_analysis.StageName</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <stringValue>Needs Analysis</stringValue>
+            </value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>OppsToUpdate</assignToReference>
+            <operator>Add</operator>
+            <value>
+                <elementReference>Set_to_needs_analysis</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Set_to_needs_analysis</targetReference>
+        </connector>
+    </assignments>
     <decisions>
         <name>Check_Number_Of_Open_Opps</name>
         <label>Check Number Of Open Opps</label>
-        <locationX>226</locationX>
+        <locationX>358</locationX>
         <locationY>539</locationY>
         <defaultConnector>
             <targetReference>Set_to_needs_analysis</targetReference>
         </defaultConnector>
         <defaultConnectorLabel>Default Outcome</defaultConnectorLabel>
         <rules>
+            <name>More_than_5</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>NumberOfOpenOpps</leftValueReference>
+                <operator>GreaterThan</operator>
+                <rightValue>
+                    <numberValue>5.0</numberValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Send_Email_To_Head_Of_Sales</targetReference>
+            </connector>
+            <label>More than 5</label>
+        </rules>
+        <rules>
             <name>More_than_3</name>
             <conditionLogic>and</conditionLogic>
             <conditions>
                 <leftValueReference>NumberOfOpenOpps</leftValueReference>
-                <operator>GreaterThanOrEqualTo</operator>
+                <operator>GreaterThan</operator>
                 <rightValue>
                     <numberValue>3.0</numberValue>
                 </rightValue>
@@ -77,13 +146,16 @@
     <loops>
         <name>Set_to_needs_analysis</name>
         <label>Set to needs analysis</label>
-        <locationX>402</locationX>
+        <locationX>666</locationX>
         <locationY>647</locationY>
         <collectionReference>Get_Opps</collectionReference>
         <iterationOrder>Asc</iterationOrder>
         <nextValueConnector>
-            <targetReference>Update_Opp_Stage_To_Needs_Analysis</targetReference>
+            <targetReference>Update_opp</targetReference>
         </nextValueConnector>
+        <noMoreValuesConnector>
+            <targetReference>Update_Opps</targetReference>
+        </noMoreValuesConnector>
     </loops>
     <processMetadataValues>
         <name>BuilderType</name>
@@ -107,7 +179,7 @@
     <recordLookups>
         <name>Get_Opps</name>
         <label>Get Opps</label>
-        <locationX>226</locationX>
+        <locationX>358</locationX>
         <locationY>323</locationY>
         <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
         <connector>
@@ -140,31 +212,21 @@
         <storeOutputAutomatically>true</storeOutputAutomatically>
     </recordLookups>
     <recordUpdates>
-        <name>Update_Opp_Stage_To_Needs_Analysis</name>
-        <label>Update Opp Stage To Needs Analysis</label>
-        <locationX>490</locationX>
+        <name>Update_Case</name>
+        <label>Update Case</label>
+        <locationX>50</locationX>
         <locationY>755</locationY>
-        <connector>
-            <targetReference>Set_to_needs_analysis</targetReference>
-        </connector>
-        <filterLogic>and</filterLogic>
-        <filters>
-            <field>Id</field>
-            <operator>EqualTo</operator>
-            <value>
-                <elementReference>Set_to_needs_analysis.Id</elementReference>
-            </value>
-        </filters>
-        <inputAssignments>
-            <field>StageName</field>
-            <value>
-                <stringValue>Needs Analysis</stringValue>
-            </value>
-        </inputAssignments>
-        <object>Opportunity</object>
+        <inputReference>OppsToUpdate</inputReference>
+    </recordUpdates>
+    <recordUpdates>
+        <name>Update_Opps</name>
+        <label>Update Opps</label>
+        <locationX>666</locationX>
+        <locationY>947</locationY>
+        <inputReference>OppsToUpdate</inputReference>
     </recordUpdates>
     <start>
-        <locationX>100</locationX>
+        <locationX>232</locationX>
         <locationY>0</locationY>
         <connector>
             <targetReference>Get_Opps</targetReference>
@@ -181,7 +243,7 @@
         <recordTriggerType>Update</recordTriggerType>
         <triggerType>RecordAfterSave</triggerType>
     </start>
-    <status>Active</status>
+    <status>Draft</status>
     <textTemplates>
         <name>EmailBody</name>
         <isViewedAsPlainText>false</isViewedAsPlainText>
