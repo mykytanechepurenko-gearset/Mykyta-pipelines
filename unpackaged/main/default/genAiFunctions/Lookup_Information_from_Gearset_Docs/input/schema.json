@@ -1,0 +1,21 @@
+{
+  "required" : [ "Input:GearsetDocs" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "Input:GearsetDocs" : {
+      "title" : "GearsetDocs",
+      "description" : "18 digit ID",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "citationMode" : {
+      "title" : "Citation Mode",
+      "description" : "Select Citation Mode",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}
